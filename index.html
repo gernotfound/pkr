@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090f17">
+<title>Poker Lab — Desktop · Texas Hold'em</title>
+<style>
+:root{color-scheme:dark;--bg:#090f17;--panel:#121e2b;--panel2:#1b2c3b;--stroke:#344b60;--fg:#eff6ff;--muted:#abbfd1;--green:#65eab9;--yellow:#ffd38a;--red:#f8a8ad;--radius:13px}
+*{box-sizing:border-box}html,body{margin:0;min-width:1190px;min-height:690px;width:100%;height:100%}body{background:radial-gradient(circle at 0 0,#15382f 0,transparent 26%),var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:12px;line-height:1.36;overflow:auto}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.35;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.page{height:100vh;min-height:690px;display:grid;grid-template-rows:47px minmax(0,1fr) 23px;gap:8px;padding:10px 14px;max-width:1980px;margin:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;min-width:0}.identity{display:flex;align-items:baseline;gap:17px}.mark{font-size:24px;font-weight:830;letter-spacing:-.06em;white-space:nowrap}.mark span{color:var(--green)}.subtitle{font-size:12px;color:var(--muted);white-space:nowrap}.topright{display:flex;align-items:center;gap:16px}.online{font-size:11px;color:var(--green);border:1px solid #2e675b;border-radius:20px;padding:5px 10px}.help{border:1px solid #456177;background:#172a37;color:var(--fg);border-radius:8px;padding:6px 10px;font-weight:700}
+.dashboard{display:grid;grid-template-columns:minmax(0,1.43fr) minmax(0,1fr) minmax(0,1fr);gap:9px;min-height:0}.column{display:flex;flex-direction:column;gap:9px;min-height:0;min-width:0}.panel{background:linear-gradient(155deg,#192a39,#101b28 76%);border:1px solid var(--stroke);border-radius:var(--radius);padding:12px;min-width:0;min-height:0;overflow:hidden;box-shadow:0 9px 25px #02070a35}.entry-panel{flex:1;display:flex;flex-direction:column}.config-panel{flex:0 0 175px}.equity-panel{flex:0 0 297px}.category-panel{flex:1}.odds-panel{flex:0 0 261px}.remaining-panel{flex:1}
+h2{font-size:14px;margin:0;letter-spacing:-.01em}h3{font-size:11px;margin:0;color:#d8e6f3}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}.muted{color:var(--muted)}.hint{font-size:10.5px;color:var(--muted);line-height:1.35}.compact-note{min-height:12px;margin:4px 0 6px}.zone-title{font-size:11px;color:#d2e0ef;font-weight:700;margin-bottom:5px}.zone-two{display:grid;grid-template-columns:126px minmax(0,1fr);gap:11px;padding-top:7px}.slots{display:flex;gap:4px;flex-wrap:nowrap}.slot{width:43px;height:53px;border:1px dashed #658098;border-radius:7px;background:#101b29;color:#8ca0b4;display:flex;align-items:center;justify-content:center;font-size:19px}.slot.has{border:1px solid #4f7986;background:#294151;font-weight:850;font-size:16px;gap:2px}.slot small{font-size:13px}.red{color:var(--red)}.dark{color:#e9f4ff}.dead-row{display:flex;align-items:center;gap:10px;height:32px;margin-top:5px;min-width:0}.dead-row .zone-title{white-space:nowrap;margin:0}.dead-area{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;flex:1;min-width:0;scrollbar-width:thin}.dead-area .hint{white-space:nowrap;align-self:center}.pill{background:#213747;color:var(--fg);border:1px solid #45647c;border-radius:6px;padding:4px 6px;font-weight:700;white-space:nowrap}.pill.red{color:var(--red)}
+.target-row{margin-top:5px;display:flex;align-items:center;gap:8px;min-height:32px}.target-row .zone-title{margin:0;white-space:nowrap}.seg{flex:1;display:flex;gap:3px;border:1px solid #30485d;background:#0b1825;padding:3px;border-radius:8px}.seg button{flex:1;border:0;border-radius:5px;background:none;color:#c2d0dd;padding:5px 3px;min-width:0;white-space:nowrap;font-weight:650;font-size:11px}.seg button.active{background:#305454;color:var(--green)}
+.deck{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:4px;height:164px;margin-top:8px;flex:0 0 164px}.deck-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;background:#263c50;color:#ecf5fe;border:1px solid #4b647b;border-radius:6px;line-height:1.1;font-weight:800;font-size:13px;padding:0}.deck-btn .suit{font-size:12px}.deck-btn.red{color:#ffb6bc}.deck-btn:hover:not(:disabled){background:#38566b}.deck-btn.used{background:#0f1926;opacity:.28}
+.actions{display:flex;gap:7px;margin-top:9px}.btn{border:1px solid #486177;border-radius:7px;background:#263b4d;color:var(--fg);padding:6px 10px;font-weight:700;white-space:nowrap;font-size:11px}.btn:hover:not(:disabled){background:#365368}.btn.primary{background:var(--green);color:#0a271f;border-color:var(--green);font-weight:800}.btn.primary:hover:not(:disabled){background:#a0f8d7}.btn.warn{color:#ffcfbd}.entry-instruction{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.field{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:11px;font-weight:700;min-width:0}.field input,.field select{min-width:0;width:100%;padding:7px 9px;border:1px solid #4b677e;border-radius:7px;background:#1b2d3e;color:var(--fg);height:31px}.fixed-value{display:flex;align-items:center;min-width:0;width:100%;height:31px;padding:7px 9px;border:1px solid #395967;border-radius:7px;background:#19362f;color:var(--green);font-weight:800;font-variant-numeric:tabular-nums}.settings-row{display:flex;gap:8px;margin-top:9px}.settings-row .primary{flex:1}.config-panel .fields{margin-top:9px}.progress{height:4px;background:#294153;border-radius:20px;overflow:hidden;margin-top:9px}.progress>div{height:100%;background:var(--green);width:0}.status{font-size:10.5px;color:var(--muted);margin-top:5px;min-height:14px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.status.error{color:var(--red)}.status.ok{color:var(--green)}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.metric{background:#1d3141;border:1px solid #365369;border-radius:9px;padding:9px 10px;min-width:0}.metric small{display:block;font-size:10px;color:#b5c9d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}.metric strong{display:block;font-weight:830;font-size:25px;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.04em}.metric.main strong{color:var(--green)}.metric.negative strong{color:var(--red)}.stack-bar{display:flex;height:9px;border-radius:20px;overflow:hidden;margin-top:10px;background:#243649}.stack-bar>div{height:100%}.stack-bar .win{background:var(--green)}.stack-bar .tie{background:var(--yellow)}.stack-bar .lose{background:#ce6d85}.legend{display:flex;gap:15px;color:var(--muted);font-size:10px;margin-top:6px}.legend span:before{content:'●';margin-right:4px}.legend .w:before{color:var(--green)}.legend .t:before{color:var(--yellow)}.legend .l:before{color:var(--red)}.methodnote{margin-top:7px;font-size:10px;color:var(--muted);line-height:1.35}
+.gridbar{display:grid;gap:6px;margin-top:10px}.barrow{display:grid;grid-template-columns:minmax(69px,1.05fr) minmax(0,1.4fr) 52px;align-items:center;gap:6px;font-size:11px;height:18px}.track{height:7px;border-radius:7px;background:#263e4f;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#5496c1,var(--green))}.percent{text-align:right;font-weight:750;font-size:11px;font-variant-numeric:tabular-nums}.category-panel .gridbar{gap:7px;margin-top:10px}.category-panel .barrow{height:19px}.category-panel .barrow{grid-template-columns:98px minmax(0,1fr) 56px}
+.pot-fields{margin-top:9px}.odds-panel .metrics{margin-top:11px}.odds-panel .metric strong{font-size:23px}.analysis{color:#d9e6f0;font-size:11px;margin-top:11px;line-height:1.45}.analysis.uncertain{color:var(--yellow)}.fineprint{font-size:10px;color:var(--muted);margin-top:12px;line-height:1.45}.remaining-count{color:var(--green);font-size:12px;font-weight:750;margin-top:7px}.remaining-group{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px;margin-top:8px}.remaining-panel .gridbar{gap:4px;margin-top:6px}.remaining-panel .barrow{grid-template-columns:24px minmax(0,1fr) 46px;height:16px;gap:5px}.remaining-panel .barrow .subdued{display:none}.remaining-panel .percent{font-size:10px}.remaining-panel h3{font-size:11px}.remaining-panel .track{height:6px}
+.foot{display:flex;align-items:center;gap:12px;justify-content:space-between;font-size:10px;color:var(--muted);min-width:0;white-space:nowrap;overflow:hidden}.foot strong{color:var(--yellow)}.foot .foot-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.version{color:#678a9b;flex-shrink:0}
+dialog{border:1px solid #4d6a7b;border-radius:15px;background:#142333;color:var(--fg);max-width:580px;padding:22px;font-size:14px;box-shadow:0 15px 70px #000b}dialog::backdrop{background:#000b}dialog h2{font-size:20px;margin-bottom:12px}dialog p{margin:10px 0}dialog .btn{margin-top:10px}
+@media(min-width:1600px) and (min-height:850px){.page{padding:16px 22px;grid-template-rows:60px minmax(0,1fr) 28px;gap:12px}.dashboard,.column{gap:12px}.panel{padding:17px}h2{font-size:17px}.entry-panel .deck{height:220px;flex-basis:220px}.deck-btn{font-size:16px}.deck-btn .suit{font-size:16px}.slot{height:66px;width:52px;font-size:22px}.slot.has{font-size:20px}.slot small{font-size:16px}.zone-two{grid-template-columns:145px minmax(0,1fr)}.zone-title,.field{font-size:12px}.seg button,.btn{font-size:12px}.config-panel{flex-basis:201px}.equity-panel{flex-basis:317px}.odds-panel{flex-basis:316px}.metric strong{font-size:32px}.odds-panel .metric strong{font-size:29px}.category-panel .gridbar{gap:14px}.category-panel .barrow{height:24px}.remaining-panel .barrow{height:21px}.remaining-panel .gridbar{gap:6px}.remaining-group{margin-top:16px}.target-row{margin-top:12px}.dead-row{margin-top:13px}}
+@media(max-height:740px){.page{padding-top:7px;padding-bottom:7px;gap:6px;grid-template-rows:40px minmax(0,1fr) 17px}.dashboard,.column{gap:7px}.panel{padding:9px}.entry-panel .deck{height:150px;flex-basis:150px}.entry-instruction{margin-top:5px}.zone-two{padding-top:4px}.dead-row{margin-top:1px}.target-row{margin-top:1px}.actions{margin-top:6px}.config-panel{flex-basis:171px}.equity-panel{flex-basis:290px}.odds-panel{flex-basis:249px}.remaining-panel .barrow{height:15px}.remaining-panel .gridbar{gap:3px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="topbar">
+    <div class="identity"><div class="mark">Poker <span>Lab</span></div><div class="subtitle">Texas Hold’em · Calcolo delle probabilità</div></div>
+    <div class="topright"><span class="online">● 100% offline</span><button id="about" class="help" type="button">ⓘ Modello e limiti</button></div>
+  </header>
+  <div class="dashboard">
+    <div class="column">
+      <section class="panel entry-panel" aria-labelledby="known-title">
+        <div class="section-head"><h2 id="known-title">01 / Selezione carte</h2></div>
+        <div class="zone-two">
+          <div><div class="zone-title">La tua mano · <span id="holecount">0/2</span></div><div class="slots" id="holes"></div></div>
+          <div><div class="zone-title">Carte comuni · <span id="boardcount">0/5</span></div><div class="slots" id="board"></div></div>
+        </div>
+        <div class="dead-row"><div class="zone-title">Carte escluse · <span id="deadcount">0</span></div><div class="dead-area" id="dead"></div></div>
+        <div class="target-row"><div class="zone-title">Inserisci in</div><div class="seg" role="group" aria-label="Destinazione carta"><button data-target="hole" class="active" type="button" aria-pressed="true">La mia mano</button><button data-target="board" type="button" aria-pressed="false">Comuni</button><button data-target="dead" type="button" aria-pressed="false">Escluse</button></div></div>
+        <div class="deck" id="deck" aria-label="Mazzo di 52 carte selezionabili"></div>
+        <div class="actions"><button class="btn" id="undo" type="button">↶ Annulla ultima</button><button class="btn warn" id="reset" type="button">↻ Nuova mano</button></div>
+        <p class="entry-instruction">Seleziona le carte in ordine: mano, flop (3), turn, river. Clic su una carta già inserita per rimuoverla. Escludi solo carte viste con certezza.</p>
+      </section>
+      <section class="panel config-panel" aria-labelledby="config-title">
+        <h2 id="config-title">02 / Parametri di calcolo</h2>
+        <div class="fields">
+          <label class="field">Avversari ancora in gioco<select id="opponents"><option value="1">1 avversario</option><option value="2">2 avversari</option><option value="3">3 avversari</option><option value="4">4 avversari</option><option value="5">5 avversari</option><option value="6">6 avversari</option><option value="7">7 avversari</option><option value="8">8 avversari</option></select></label>
+          <div class="field"><span>Simulazioni Monte Carlo</span><div class="fixed-value" aria-label="100.000 simulazioni Monte Carlo fisse">100.000 · fisse</div></div>
+        </div>
+        <div class="settings-row"><button class="btn primary" id="calculate" type="button">Calcola equity e probabilità</button><button class="btn" id="cancel" type="button" disabled>Interrompi</button></div>
+        <div class="progress" aria-hidden="true"><div id="progressfill"></div></div><div id="status" class="status" role="status" aria-live="polite">Seleziona le tue due carte.</div>
+      </section>
+    </div>
+    <div class="column">
+      <section class="panel equity-panel">
+        <h2>03 / Risultato della mano</h2>
+        <p id="handdesc" class="hint compact-note">Seleziona le carte personali e quelle comuni.</p>
+        <div class="metrics">
+          <div class="metric main"><small>Equity (quota media del piatto)</small><strong id="equity">—</strong></div>
+          <div class="metric"><small>Vittoria</small><strong id="wins">—</strong></div>
+          <div class="metric"><small>Pareggio al primo posto</small><strong id="ties">—</strong></div>
+          <div class="metric negative"><small>Sconfitta</small><strong id="losses">—</strong></div>
+        </div>
+        <div class="stack-bar" role="img" aria-label="Frequenze di vittoria, pareggio e sconfitta"><div id="winbar" class="win" style="width:0"></div><div id="tiebar" class="tie" style="width:0"></div><div id="losebar" class="lose" style="width:0"></div></div>
+        <div class="legend"><span class="w">Vittoria</span><span class="t">Pareggio</span><span class="l">Sconfitta</span></div>
+        <p id="methodnote" class="methodnote">Le mani avversarie sono uniformemente casuali fra le carte non note.</p>
+      </section>
+      <section class="panel category-panel">
+        <h2>04 / Combinazione finale al river</h2>
+        <p class="hint compact-note">Distribuzione della tua mano migliore, indipendentemente dalla vittoria.</p>
+        <div id="categorybars" class="gridbar"></div>
+      </section>
+    </div>
+    <div class="column">
+      <section class="panel odds-panel">
+        <h2>05 / Pot odds ed EV</h2>
+        <p class="hint compact-note">Call fino allo showdown, senza altre puntate né rake.</p>
+        <div class="fields pot-fields">
+          <label class="field">Piatto attuale (€)<input id="pot" type="number" min="0" step="0.01" value="100"></label>
+          <label class="field">Costo call (€)<input id="call" type="number" min="0" step="0.01" value="25"></label>
+        </div>
+        <div class="metrics">
+          <div class="metric"><small>Equity minima</small><strong id="potodds">20,0%</strong></div>
+          <div class="metric"><small>EV call stimato</small><strong id="callev">—</strong></div>
+        </div>
+        <p id="decision" class="analysis">Calcola prima l’equity della tua mano.</p>
+      </section>
+      <section class="panel remaining-panel" aria-labelledby="remaining-title">
+        <h2 id="remaining-title">06 / Carte non osservate</h2>
+        <div class="remaining-count" id="remaining">52 carte non osservate su 52</div>
+        <div class="remaining-group">
+          <div><h3>Probabilità per valore</h3><div id="rankbars" class="gridbar"></div></div>
+          <div><h3>Per seme</h3><div id="suitbars" class="gridbar"></div></div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <footer class="foot"><span class="foot-text"><strong>Ipotesi:</strong> Texas Hold’em · 52 carte · avversari casuali · nessuna previsione certa delle carte avversarie. Controlla le regole della piattaforma prima dell’uso durante una partita.</span><span class="version">DESKTOP EDITION · v2</span></footer>
+</main>
+<dialog id="info"><h2>Limiti del modello</h2><p>Poker Lab calcola l'equity ipotizzando che le mani avversarie siano estratte casualmente dalle carte sconosciute. Non deduce i loro range dai comportamenti e non predice la prossima carta.</p><p>Con cinque carte comuni e un avversario enumera tutte le coppie residue (calcolo esatto). Negli altri casi usa Monte Carlo, mostrando un intervallo di confidenza approssimato del 95% basato sulla varianza delle quote di piatto.</p><p>Le pot odds e l'EV assumono una singola chiamata, nessuna puntata futura, nessun rake né side pot. L'intervallo statistico non incorpora l'errore del modello sugli avversari.</p><p>Nel Texas Hold’em standard si usa un solo mazzo da 52 carte per mano, anche se un casinò può alternare fisicamente più mazzi tra una mano e l'altra. Per questo programma non esiste un'opzione per mescolare più mazzi. Le mani precedenti non modificano la distribuzione della successiva.</p><p>In tutti gli scenari non enumerabili esegue esattamente 100.000 simulazioni Monte Carlo. L'uso di software di supporto in partita può essere vietato dai regolamenti delle piattaforme o dei casinò.</p><button id="closeinfo" class="btn primary" type="button">Chiudi</button></dialog>
+<script>
+'use strict';
+// Pure poker engine. Cards have r=2..14 and s=0..3.
+const SUITS = ['♥','♦','♣','♠'];
+const MONTE_CARLO_SAMPLES = 100000;
+const RANKS = [14,13,12,11,10,9,8,7,6,5,4,3,2];
+const NAMES = ['Carta alta','Coppia','Doppia coppia','Tris','Scala','Colore','Full','Poker','Scala colore'];
+const DECK = Object.freeze(SUITS.flatMap((s,si) => RANKS.map(r => Object.freeze({r,s:si,id:si*13+(14-r)}))));
+const fmtRank = r => ({14:'A',13:'K',12:'Q',11:'J'}[r] || String(r));
+const formatCard = c => `${fmtRank(c.r)}${SUITS[c.s]}`;
+const code = (kind,values) => {let out=kind; for(let i=0;i<5;i++) out=out*15+(values[i]||0); return out};
+function topStraight(ranks) {
+  const seen = new Set(ranks);
+  if(seen.has(14)) seen.add(1);
+  for(let high=14;high>=5;high--) if([0,1,2,3,4].every(i=>seen.has(high-i))) return high;
+  return 0;
+}
+function evaluate(cards) {
+  if (cards.length<5 || cards.length>7) throw Error('Servono da 5 a 7 carte.');
+  const counts=new Int8Array(15), suited=[[],[],[],[]];
+  for(const c of cards){counts[c.r]++;suited[c.s].push(c.r)}
+  const uniq=[];for(let r=14;r>=2;r--)if(counts[r])uniq.push(r);
+  for(let s=0;s<4;s++) if(suited[s].length>=5){
+    const sf=topStraight(suited[s]);if(sf)return {score:code(8,[sf]),category:8};
+  }
+  for(let r=14;r>=2;r--)if(counts[r]===4){
+    const kicker=uniq.find(n=>n!==r);return {score:code(7,[r,kicker]),category:7};
+  }
+  const trips=uniq.filter(r=>counts[r]>=3),pairs=uniq.filter(r=>counts[r]>=2);
+  if(trips.length){const pair=pairs.find(r=>r!==trips[0]);if(pair)return {score:code(6,[trips[0],pair]),category:6}}
+  for(let s=0;s<4;s++)if(suited[s].length>=5){const v=suited[s].slice().sort((a,b)=>b-a).slice(0,5);return {score:code(5,v),category:5}}
+  const straight=topStraight(uniq);if(straight)return {score:code(4,[straight]),category:4};
+  if(trips.length){const rest=uniq.filter(r=>r!==trips[0]).slice(0,2);return {score:code(3,[trips[0],...rest]),category:3}}
+  if(pairs.length>=2){const rest=uniq.find(r=>r!==pairs[0]&&r!==pairs[1]);return {score:code(2,[pairs[0],pairs[1],rest]),category:2}}
+  if(pairs.length){const rest=uniq.filter(r=>r!==pairs[0]).slice(0,3);return {score:code(1,[pairs[0],...rest]),category:1}}
+  return {score:code(0,uniq.slice(0,5)),category:0};
+}
+function getRemaining(known) {
+  const set=new Set(known.map(c=>c.id));
+  if(set.size!==known.length)throw Error('Una carta è stata inserita più di una volta.');
+  return DECK.filter(c=>!set.has(c.id));
+}
+function sampleOnce(hole,board,remaining,opponents,random=Math.random){
+  if(hole.length!==2||![0,3,4,5].includes(board.length))throw Error('Selezione delle carte incompleta.');
+  const toDraw=5-board.length+2*opponents;
+  if(remaining.length<toDraw)throw Error('Non ci sono abbastanza carte per completare la simulazione.');
+  const pool=remaining.slice();
+  // Partial Fisher-Yates: draws without replacement, including unknown enemy cards.
+  for(let j=0;j<toDraw;j++){const ix=j+Math.floor(random()*(pool.length-j));[pool[j],pool[ix]]=[pool[ix],pool[j]]}
+  const fullBoard=board.concat(pool.slice(0,5-board.length));
+  const h=evaluate(hole.concat(fullBoard));
+  let leaders=1,beaten=false;
+  for(let i=0;i<opponents;i++){
+    const from=5-board.length+i*2;
+    const other=evaluate([pool[from],pool[from+1],...fullBoard]);
+    if(other.score>h.score){beaten=true;break}
+    if(other.score===h.score)leaders++;
+  }
+  return {result:beaten?'loss':leaders>1?'tie':'win',share:beaten?0:1/leaders,category:h.category};
+}
+// UI CODE
+const $=id=>document.getElementById(id);
+let state={hole:[],board:[],dead:[],history:[],target:'hole'};
+let runId=0,latestEquity=null,latestCI=null,busy=false;
+const percent=(n,d=1,places=1)=>Number.isFinite(n/d)?(100*n/d).toLocaleString('it-IT',{minimumFractionDigits:places,maximumFractionDigits:places})+'%':'—';
+const euros=n=>Number.isFinite(n)?n.toLocaleString('it-IT',{style:'currency',currency:'EUR'}):'—';
+const cardById=id=>DECK[id];
+const formatLabel=c=>`${fmtRank(c.r)} ${SUITS[c.s]}`;
+function slotMarkup(c){return c?`<button class="slot has ${c.s<2?'red':'dark'}" title="Rimuovi ${formatLabel(c)}" aria-label="Rimuovi ${formatLabel(c)}" data-remove="${c.id}" type="button">${fmtRank(c.r)}<small>${SUITS[c.s]}</small></button>`:'<span class="slot" aria-label="Carta da inserire">?</span>'}
+function setTarget(t){state.target=t;document.querySelectorAll('[data-target]').forEach(b=>{const on=b.dataset.target===t;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on))})}
+function renderKnown(){
+  $('holes').innerHTML=Array.from({length:2},(_,i)=>slotMarkup(state.hole[i])).join('');
+  $('board').innerHTML=Array.from({length:5},(_,i)=>slotMarkup(state.board[i])).join('');
+  $('dead').innerHTML=state.dead.map(c=>`<button class="pill ${c.s<2?'red':''}" data-remove="${c.id}" title="Rimuovi ${formatLabel(c)}" aria-label="Rimuovi ${formatLabel(c)}" type="button">${formatCard(c)} ×</button>`).join('')||'<span class="hint">Nessuna carta esclusa</span>';
+  $('holecount').textContent=`${state.hole.length}/2`;$('boardcount').textContent=`${state.board.length}/5`;$('deadcount').textContent=String(state.dead.length);
+  const used=new Set([...state.hole,...state.board,...state.dead].map(c=>c.id));
+  document.querySelectorAll('.deck-btn').forEach(b=>{const isUsed=used.has(Number(b.dataset.id));b.disabled=isUsed;b.classList.toggle('used',isUsed)});
+  $('undo').disabled=state.history.length===0;
+  const all=state.hole.concat(state.board,state.dead);
+  const remaining=getRemaining(all);
+  $('remaining').textContent=`${remaining.length} carte non osservate su 52`;
+  const rankRows=RANKS.map(r=>({label:fmtRank(r),count:remaining.filter(c=>c.r===r).length}));
+  const suitRows=SUITS.map((s,i)=>({label:s,count:remaining.filter(c=>c.s===i).length}));
+  drawBars('rankbars',rankRows,remaining.length,4);
+  drawBars('suitbars',suitRows,remaining.length,13);
+  const l=state.hole.length+state.board.length;
+  if(state.hole.length<2)$('handdesc').textContent='Completa la tua mano di due carte.';
+  else if(l>=5){const result=evaluate(state.hole.concat(state.board));$('handdesc').textContent=`Combinazione attuale: ${result.category===8&&result.score===code(8,[14])?'Scala reale':NAMES[result.category]}.`}
+  else $('handdesc').textContent='Mano preflop: la combinazione finale dipenderà dalle carte comuni.';
+}
+function drawBars(node,rows,total,max){$(node).innerHTML=rows.map(({label,count})=>`<div class="barrow"><span>${label} <span class="subdued">(${count})</span></span><div class="track"><div class="fill" style="width:${max?count/max*100:0}%"></div></div><span class="percent">${percent(count,total)}</span></div>`).join('')}
+function invalidate(){runId++;busy=false;$('cancel').disabled=true;$('calculate').disabled=false;$('progressfill').style.width='0%';latestEquity=null;latestCI=null;for(const id of ['equity','wins','ties','losses','callev'])$(id).textContent='—';for(const id of ['winbar','tiebar','losebar'])$(id).style.width='0%';$('categorybars').innerHTML='<p class="hint">Avvia il calcolo per visualizzare la distribuzione.</p>';$('decision').textContent='Calcola prima l’equity della tua mano.';$('decision').className='analysis';$('methodnote').textContent='Le mani avversarie sono ipotizzate casuali tra le carte non note: non è una previsione del comportamento reale.';$('status').textContent='Dati modificati: esegui una nuova simulazione.';$('status').className='status'}
+function refresh(){invalidate();renderKnown();updateOdds()}
+function addCard(id){const c=cardById(id);if(!c||[...state.hole,...state.board,...state.dead].some(a=>a.id===id))return;
+  let target=state.target;
+  if(target==='hole'&&state.hole.length>=2){target='board';setTarget(target)}
+  if(target==='board'&&state.board.length>=5){target='dead';setTarget(target)}
+  state[target].push(c);state.history.push(c.id);
+  if(target==='hole'&&state.hole.length===2)setTarget('board');
+  refresh();
+}
+function removeCard(id){for(const zone of ['hole','board','dead']){const idx=state[zone].findIndex(c=>c.id===id);if(idx!==-1){state[zone].splice(idx,1);state.history=state.history.filter(x=>x!==id);setTarget(zone);refresh();return}}}
+function reset(){state={hole:[],board:[],dead:[],history:[],target:'hole'};setTarget('hole');refresh();$('status').textContent='Seleziona le tue due carte per iniziare.'}
+function validate(){const {hole,board,dead}=state;if(hole.length!==2)return'Seleziona prima esattamente due carte personali.';
+  if(![0,3,4,5].includes(board.length))return'Per calcolare il postflop inserisci tutte e tre le carte del flop (o completa turn/river).';
+  const remaining=52-hole.length-board.length-dead.length;
+  if(remaining<2*Number($('opponents').value)+5-board.length)return'Non ci sono abbastanza carte non osservate per gli avversari e il board.';
+  return '';
+}
+function updateOdds(){let pot=Number($('pot').value),call=Number($('call').value);if($('pot').value.trim()===''||$('call').value.trim()===''||!Number.isFinite(pot)||!Number.isFinite(call)||pot<0||call<0||call>pot||pot+call<=0){$('potodds').textContent='—';$('callev').textContent='—';$('decision').textContent='Inserisci valori validi: il piatto attuale deve essere almeno pari al costo del call e il totale deve essere positivo.';return}
+  const threshold=call/(pot+call);$('potodds').textContent=percent(threshold);
+  if(latestEquity===null){$('callev').textContent='—';$('decision').textContent='Calcola prima l’equity della tua mano.';$('decision').className='analysis';return}
+  const ev=latestEquity*(pot+call)-call;$('callev').textContent=euros(ev);$('callev').style.color=ev>=0?'var(--green)':'var(--red)';
+  const low=latestCI[0],high=latestCI[1];
+  const verdict=low<=threshold&&high>=threshold?'Segno dell’EV incerto':low>threshold?'EV probabilmente positivo':'EV probabilmente negativo';
+  $('decision').textContent=`${latestCI[2]?'Calcolo esatto':'Intervallo 95% approssimato'}: equity ${percent(low)}–${percent(high)}. ${verdict} nel modello (soglia ${percent(threshold)}).`;
+  $('decision').className='analysis'+(low<=threshold&&high>=threshold?' uncertain':'');
+}
+function initDeck(){const container=$('deck');container.innerHTML=DECK.map(c=>`<button type="button" class="deck-btn ${c.s<2?'red':''}" data-id="${c.id}" aria-label="${fmtRank(c.r)} di ${['cuori','quadri','fiori','picche'][c.s]}"><span>${fmtRank(c.r)}</span><span class="suit">${SUITS[c.s]}</span></button>`).join('')}
+function setResults(total,wins,ties,losses,share,shareSquares,categories,opp,isExact){
+  latestEquity=share/total;
+  // Estimate uncertainty on per-run pot shares, not on the Bernoulli win rate:
+  // split pots produce fractional observations. Exact enumeration has no sampling error.
+  const sampleVar=total>1?Math.max(0,(shareSquares-total*latestEquity*latestEquity)/(total-1)):0;
+  const halfWidth=isExact?0:1.96*Math.sqrt(sampleVar/total);
+  latestCI=[Math.max(0,latestEquity-halfWidth),Math.min(1,latestEquity+halfWidth),isExact];
+  $('equity').textContent=percent(latestEquity);$('wins').textContent=percent(wins,total);$('ties').textContent=percent(ties,total);$('losses').textContent=percent(losses,total);
+  $('winbar').style.width=`${100*wins/total}%`;$('tiebar').style.width=`${100*ties/total}%`;$('losebar').style.width=`${100*losses/total}%`;
+  $('categorybars').innerHTML=NAMES.map((label,i)=>({label,count:categories[i]})).reverse().map(({label,count})=>`<div class="barrow"><span>${label}</span><div class="track"><div class="fill" style="width:${100*count/total}%"></div></div><span class="percent">${percent(count,total)}</span></div>`).join('');
+  $('methodnote').textContent=`${total.toLocaleString('it-IT')} ${isExact?'combinazioni esaustive':'campioni casuali'} · ${opp} ${opp===1?'avversario':'avversari'} · ${isExact?'risultato esatto':`IC 95% approssimato: ${percent(latestCI[0])}–${percent(latestCI[1])}`}. Avversari con mani casuali.`;
+  updateOdds();
+}
+async function simulate(){
+  if(busy)return;
+  const error=validate();if(error){$('status').textContent=error;$('status').className='status error';return}
+  const token=++runId;busy=true;$('calculate').disabled=true;$('cancel').disabled=false;
+  $('status').className='status';$('status').textContent='Calcolo in corso…';
+  const {hole,board,dead}=state;
+  const remaining=getRemaining([...hole,...board,...dead]);
+  const opponents=Number($('opponents').value),iterations=MONTE_CARLO_SAMPLES;
+  const categories=Array(9).fill(0);let wins=0,ties=0,losses=0,share=0,shareSquares=0,done=0;
+  const exact=opponents===1&&board.length===5;
+  if(exact){
+    // Once the river is known, enumerate each possible opponent pair exactly once.
+    const mine=evaluate(hole.concat(board));
+    for(let i=0;i<remaining.length;i++)for(let j=i+1;j<remaining.length;j++){
+      const opponent=evaluate([remaining[i],remaining[j],...board]);
+      const s=mine.score>opponent.score?1:mine.score===opponent.score?.5:0;
+      share+=s;shareSquares+=s*s;
+      if(s===1)wins++;else if(s===.5)ties++;else losses++;
+      categories[mine.category]++;done++;
+    }
+  }else{
+    const chunk=1000;
+    while(done<iterations){
+      if(token!==runId)return;
+      const end=Math.min(done+chunk,iterations);
+      for(;done<end;done++){
+        const result=sampleOnce(hole,board,remaining,opponents);
+        categories[result.category]++;share+=result.share;shareSquares+=result.share**2;
+        if(result.result==='win')wins++;else if(result.result==='tie')ties++;else losses++;
+      }
+      $('progressfill').style.width=`${100*done/iterations}%`;
+      $('status').textContent=`${done.toLocaleString('it-IT')} / ${iterations.toLocaleString('it-IT')} simulazioni`;
+      await new Promise(resolve=>setTimeout(resolve,0));
+    }
+  }
+  if(token!==runId)return;
+  busy=false;$('calculate').disabled=false;$('cancel').disabled=true;
+  $('progressfill').style.width='100%';
+  setResults(done,wins,ties,losses,share,shareSquares,categories,opponents,exact);
+  $('status').className='status ok';$('status').textContent=exact?'Enumerazione esatta completata.':'Simulazione completata.';
+}
+function bind(){initDeck();$('deck').addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(b&&!b.disabled)addCard(Number(b.dataset.id))});
+  for(const el of [$('holes'),$('board'),$('dead')])el.addEventListener('click',e=>{const b=e.target.closest('[data-remove]');if(b)removeCard(Number(b.dataset.remove))});
+  document.querySelectorAll('[data-target]').forEach(b=>b.addEventListener('click',()=>setTarget(b.dataset.target)));
+  $('undo').addEventListener('click',()=>{const id=state.history.at(-1);if(id!==undefined)removeCard(id)});
+  $('reset').addEventListener('click',reset);
+  $('opponents').addEventListener('change',refresh);
+  for(const id of ['pot','call'])$(id).addEventListener('input',updateOdds);
+  $('calculate').addEventListener('click',simulate);
+  $('cancel').addEventListener('click',()=>{if(!busy)return;invalidate();$('status').textContent='Simulazione interrotta.'});
+  $('categorybars').innerHTML='<p class="hint">Avvia il calcolo per visualizzare la distribuzione.</p>';
+  $('about').addEventListener('click',()=>$('info').showModal());
+  $('closeinfo').addEventListener('click',()=>$('info').close());
+  renderKnown();updateOdds();
+}
+bind();
+</script>
+</body>
+</html>

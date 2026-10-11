@@ -49,7 +49,7 @@ dialog{border:1px solid #4d6a7b;border-radius:15px;background:#142333;color:var(
         <h2 id="config-title">02 / Parametri di calcolo</h2>
         <div class="fields">
           <label class="field">Avversari ancora in gioco<select id="opponents"><option value="1">1 avversario</option><option value="2">2 avversari</option><option value="3">3 avversari</option><option value="4">4 avversari</option><option value="5">5 avversari</option><option value="6">6 avversari</option><option value="7">7 avversari</option><option value="8">8 avversari</option></select></label>
-          <div class="field"><span>Simulazioni Monte Carlo</span><div class="fixed-value" aria-label="100.000 simulazioni Monte Carlo fisse">100.000 · fisse</div></div>
+          <div class="field"><span>Simulazioni Monte Carlo</span><div class="fixed-value" aria-label="500.000 simulazioni Monte Carlo fisse">500.000 · fisse</div></div>
         </div>
         <div class="settings-row"><button class="btn primary" id="calculate" type="button">Calcola equity e probabilità</button><button class="btn" id="cancel" type="button" disabled>Interrompi</button></div>
         <div class="progress" aria-hidden="true"><div id="progressfill"></div></div><div id="status" class="status" role="status" aria-live="polite">Seleziona le tue due carte.</div>
@@ -101,12 +101,12 @@ dialog{border:1px solid #4d6a7b;border-radius:15px;background:#142333;color:var(
   </div>
   <footer class="foot"><span class="foot-text"><strong>Ipotesi:</strong> Texas Hold’em · 52 carte · avversari casuali · nessuna previsione certa delle carte avversarie. Controlla le regole della piattaforma prima dell’uso durante una partita.</span><span class="version">DESKTOP EDITION · v2</span></footer>
 </main>
-<dialog id="info"><h2>Limiti del modello</h2><p>Poker Lab calcola l'equity ipotizzando che le mani avversarie siano estratte casualmente dalle carte sconosciute. Non deduce i loro range dai comportamenti e non predice la prossima carta.</p><p>Con cinque carte comuni e un avversario enumera tutte le coppie residue (calcolo esatto). Negli altri casi usa Monte Carlo, mostrando un intervallo di confidenza approssimato del 95% basato sulla varianza delle quote di piatto.</p><p>Le pot odds e l'EV assumono una singola chiamata, nessuna puntata futura, nessun rake né side pot. L'intervallo statistico non incorpora l'errore del modello sugli avversari.</p><p>Nel Texas Hold’em standard si usa un solo mazzo da 52 carte per mano, anche se un casinò può alternare fisicamente più mazzi tra una mano e l'altra. Per questo programma non esiste un'opzione per mescolare più mazzi. Le mani precedenti non modificano la distribuzione della successiva.</p><p>In tutti gli scenari non enumerabili esegue esattamente 100.000 simulazioni Monte Carlo. L'uso di software di supporto in partita può essere vietato dai regolamenti delle piattaforme o dei casinò.</p><button id="closeinfo" class="btn primary" type="button">Chiudi</button></dialog>
+<dialog id="info"><h2>Limiti del modello</h2><p>Poker Lab calcola l'equity ipotizzando che le mani avversarie siano estratte casualmente dalle carte sconosciute. Non deduce i loro range dai comportamenti e non predice la prossima carta.</p><p>Con cinque carte comuni e un avversario enumera tutte le coppie residue (calcolo esatto). Negli altri casi usa Monte Carlo, mostrando un intervallo di confidenza approssimato del 95% basato sulla varianza delle quote di piatto.</p><p>Le pot odds e l'EV assumono una singola chiamata, nessuna puntata futura, nessun rake né side pot. L'intervallo statistico non incorpora l'errore del modello sugli avversari.</p><p>Nel Texas Hold’em standard si usa un solo mazzo da 52 carte per mano, anche se un casinò può alternare fisicamente più mazzi tra una mano e l'altra. Per questo programma non esiste un'opzione per mescolare più mazzi. Le mani precedenti non modificano la distribuzione della successiva.</p><p>In tutti gli scenari non enumerabili esegue esattamente 500.000 simulazioni Monte Carlo. L'uso di software di supporto in partita può essere vietato dai regolamenti delle piattaforme o dei casinò.</p><button id="closeinfo" class="btn primary" type="button">Chiudi</button></dialog>
 <script>
 'use strict';
 // Pure poker engine. Cards have r=2..14 and s=0..3.
 const SUITS = ['♥','♦','♣','♠'];
-const MONTE_CARLO_SAMPLES = 100000;
+const MONTE_CARLO_SAMPLES = 500000;
 const RANKS = [14,13,12,11,10,9,8,7,6,5,4,3,2];
 const NAMES = ['Carta alta','Coppia','Doppia coppia','Tris','Scala','Colore','Full','Poker','Scala colore'];
 const DECK = Object.freeze(SUITS.flatMap((s,si) => RANKS.map(r => Object.freeze({r,s:si,id:si*13+(14-r)}))));

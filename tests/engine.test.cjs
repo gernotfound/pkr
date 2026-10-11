@@ -22,10 +22,10 @@ const card = (token) => {
   return deck.find(c => c.r === rank && c.s === suit);
 };
 const hand = (...tokens) => tokens.map(card);
-test('Mazzo: 52 carte distinte e 100.000 simulazioni configurate', () => {
+test('Mazzo: 52 carte distinte e 500.000 simulazioni configurate', () => {
   assert.equal(deck.length, 52);
   assert.equal(new Set(deck.map(c => c.id)).size, 52);
-  assert.equal(vm.runInContext('MONTE_CARLO_SAMPLES', context), 100000);
+  assert.equal(vm.runInContext('MONTE_CARLO_SAMPLES', context), 500000);
   assert.ok(!/id="example"/.test(html), 'nessun bottone Esempio');
   assert.ok(!/id="iterations"/.test(html), 'nessun selettore campioni');
 });

@@ -6,7 +6,7 @@ Analizzatore probabilistico **Texas Hold'em**, interamente nel browser, gratuito
 Apri [index.html](index.html) in un browser desktop, anche offline. Inserisci le due carte personali, le carte comuni note ed eventuali carte escluse; scegli il numero di avversari e premi **Calcola equity e probabilità**.
 
 ## Come calcola
-- **100.000 simulazioni Monte Carlo** negli scenari non enumerati.
+- **500.000 simulazioni Monte Carlo** negli scenari non enumerati.
 - **Enumerazione combinatoria esatta** al river contro un solo avversario.
 - Equity come quota media di piatto considerando gli split; frequenze di vittoria/pareggio/sconfitta.
 - Pot odds e valore atteso del call secondo un modello semplificato e dichiarato.

@@ -60,8 +60,8 @@ dialog{border:1px solid #4d6a7b;border-radius:15px;background:#142333;color:var(
         <h2>03 / Risultato della mano</h2>
         <p id="handdesc" class="hint compact-note">Seleziona le carte personali e quelle comuni.</p>
         <div class="metrics">
-          <div class="metric main"><small>Equity (quota media del piatto)</small><strong id="equity">—</strong></div>
-          <div class="metric"><small>Vittoria</small><strong id="wins">—</strong></div>
+          <div class="metric main"><small>Probabilità di vittoria</small><strong id="wins">—</strong></div>
+          <div class="metric"><small>Equity (quota del piatto)</small><strong id="equity">—</strong></div>
           <div class="metric"><small>Pareggio al primo posto</small><strong id="ties">—</strong></div>
           <div class="metric negative"><small>Sconfitta</small><strong id="losses">—</strong></div>
         </div>
@@ -101,7 +101,7 @@ dialog{border:1px solid #4d6a7b;border-radius:15px;background:#142333;color:var(
   </div>
   <footer class="foot"><span class="foot-text"><strong>Ipotesi:</strong> Texas Hold’em · 52 carte · avversari casuali · nessuna previsione certa delle carte avversarie. Controlla le regole della piattaforma prima dell’uso durante una partita.</span><span class="version">DESKTOP EDITION · v2</span></footer>
 </main>
-<dialog id="info"><h2>Limiti del modello</h2><p>Poker Lab calcola l'equity ipotizzando che le mani avversarie siano estratte casualmente dalle carte sconosciute. Non deduce i loro range dai comportamenti e non predice la prossima carta.</p><p>Con cinque carte comuni e un avversario enumera tutte le coppie residue (calcolo esatto). Negli altri casi usa Monte Carlo, mostrando un intervallo di confidenza approssimato del 95% basato sulla varianza delle quote di piatto.</p><p>Le pot odds e l'EV assumono una singola chiamata, nessuna puntata futura, nessun rake né side pot. L'intervallo statistico non incorpora l'errore del modello sugli avversari.</p><p>Nel Texas Hold’em standard si usa un solo mazzo da 52 carte per mano, anche se un casinò può alternare fisicamente più mazzi tra una mano e l'altra. Per questo programma non esiste un'opzione per mescolare più mazzi. Le mani precedenti non modificano la distribuzione della successiva.</p><p>In tutti gli scenari non enumerabili esegue esattamente 500.000 simulazioni Monte Carlo. L'uso di software di supporto in partita può essere vietato dai regolamenti delle piattaforme o dei casinò.</p><button id="closeinfo" class="btn primary" type="button">Chiudi</button></dialog>
+<dialog id="info"><h2>Limiti del modello</h2><p>Poker Lab calcola l'equity ipotizzando che le mani avversarie siano estratte casualmente dalle carte sconosciute. Non deduce i loro range dai comportamenti e non predice la prossima carta.</p><p>Con un solo avversario, dal turn (quattro carte comuni) enumera tutte le combinazioni residue (calcolo esatto). Negli altri casi usa Monte Carlo, mostrando un intervallo di confidenza approssimato del 95% basato sulla varianza delle quote di piatto.</p><p>Le pot odds e l'EV assumono una singola chiamata, nessuna puntata futura, nessun rake né side pot. L'intervallo statistico non incorpora l'errore del modello sugli avversari.</p><p>Nel Texas Hold’em standard si usa un solo mazzo da 52 carte per mano, anche se un casinò può alternare fisicamente più mazzi tra una mano e l'altra. Per questo programma non esiste un'opzione per mescolare più mazzi. Le mani precedenti non modificano la distribuzione della successiva.</p><p>In tutti gli scenari non enumerabili esegue esattamente 500.000 simulazioni Monte Carlo. L'uso di software di supporto in partita può essere vietato dai regolamenti delle piattaforme o dei casinò.</p><button id="closeinfo" class="btn primary" type="button">Chiudi</button></dialog>
 <script>
 'use strict';
 // Pure poker engine. Cards have r=2..14 and s=0..3.
@@ -161,6 +161,36 @@ function sampleOnce(hole,board,remaining,opponents,random=Math.random){
     if(other.score===h.score)leaders++;
   }
   return {result:beaten?'loss':leaders>1?'tie':'win',share:beaten?0:1/leaders,category:h.category};
+}
+// Exhaustively enumerate board completion and opponent hole cards once the turn is known.
+// Each distinct (river, unordered opponent pair) is equiprobable under uniform ranges.
+// For a completed board, the same routine enumerates only opponent pairs.
+function enumerateHeadsUp(hole,board,remaining) {
+  if(hole.length!==2 || ![4,5].includes(board.length)) throw Error('Enumerazione esatta disponibile solo dal turn.');
+  const missing=5-board.length;
+  if(remaining.length<missing+2) throw Error('Non ci sono carte sufficienti.');
+  const categories=Array(9).fill(0);
+  let total=0,wins=0,ties=0,losses=0,share=0,shareSquares=0;
+  // Use a sentinel in the river-complete case to avoid counting the same pairs twice.
+  const riverCount=missing?remaining.length:1;
+  for(let r=0;r<riverCount;r++) {
+    const fullBoard=missing?[...board,remaining[r]]:board;
+    const mine=evaluate([...hole,...fullBoard]);
+    for(let i=0;i<remaining.length;i++) {
+      if(missing&&i===r)continue;
+      for(let j=i+1;j<remaining.length;j++) {
+        if(missing&&j===r)continue;
+        const opponent=evaluate([remaining[i],remaining[j],...fullBoard]);
+        const shareOfPot=mine.score>opponent.score?1:mine.score===opponent.score?0.5:0;
+        if(shareOfPot===1)wins++;else if(shareOfPot===0.5)ties++;else losses++;
+        share+=shareOfPot;
+        shareSquares+=shareOfPot*shareOfPot;
+        categories[mine.category]++;
+        total++;
+      }
+    }
+  }
+  return {total,wins,ties,losses,share,shareSquares,categories};
 }
 // UI CODE
 const $=id=>document.getElementById(id);
@@ -243,17 +273,11 @@ async function simulate(){
   const remaining=getRemaining([...hole,...board,...dead]);
   const opponents=Number($('opponents').value),iterations=MONTE_CARLO_SAMPLES;
   const categories=Array(9).fill(0);let wins=0,ties=0,losses=0,share=0,shareSquares=0,done=0;
-  const exact=opponents===1&&board.length===5;
+  const exact=opponents===1&&board.length>=4;
   if(exact){
-    // Once the river is known, enumerate each possible opponent pair exactly once.
-    const mine=evaluate(hole.concat(board));
-    for(let i=0;i<remaining.length;i++)for(let j=i+1;j<remaining.length;j++){
-      const opponent=evaluate([remaining[i],remaining[j],...board]);
-      const s=mine.score>opponent.score?1:mine.score===opponent.score?.5:0;
-      share+=s;shareSquares+=s*s;
-      if(s===1)wins++;else if(s===.5)ties++;else losses++;
-      categories[mine.category]++;done++;
-    }
+    const exactResults=enumerateHeadsUp(hole,board,remaining);
+    ({total:done,wins,ties,losses,share,shareSquares}=exactResults);
+    exactResults.categories.forEach((count,i)=>{categories[i]=count});
   }else{
     const chunk=1000;
     while(done<iterations){

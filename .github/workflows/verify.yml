@@ -14,5 +14,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Test poker engine against independent reference
+      - name: Install pinned independent reference (test-only)
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts pokersolver@2.1.4
+      - name: Test poker engine and cross-check with pokersolver
         run: node --test tests/*.test.cjs
+  independent-ph-evaluator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned external PH Evaluator (test-only)
+        run: python -m pip install 'phevaluator==0.6.1'
+      - name: Compare showdown results to independent perfect-hash evaluator
+        run: |
+          node tests/external-fixtures.cjs > "$RUNNER_TEMP/pkr-showdowns.json"
+          python tests/external_phevaluator.py "$RUNNER_TEMP/pkr-showdowns.json"

@@ -8,7 +8,7 @@ Poker Lab è un analizzatore probabilistico didattico per **Texas Hold'em**. L'o
 - Applicazione: **index.html** nella radice, HTML + CSS + JavaScript vanilla, esecuzione interamente lato client, senza API, account, database, framework o build.
 - Pubblicazione prevista: **GitHub Pages**, sorgente ramo **main**, cartella **/(root)**. L'abilitazione di Pages nelle impostazioni GitHub è distinta dal caricamento dei file; verificare sempre lo stato reale.
 - Interfaccia: **solo desktop**, dashboard su una schermata; target verificati nella versione iniziale: 1280×720, 1366×768, 1440×900, 1920×1080. Non introdurre layout mobile senza nuova richiesta.
-- File: index.html (app), README.md (istruzioni), AGENTS.md (contesto e contratti), tests/engine.test.cjs e tests/reference.test.cjs (regressione e confronto con un valutatore indipendente implementato nei test), .github/workflows/verify.yml (CI su main/PR).
+- File: index.html (app), README.md (istruzioni), AGENTS.md (contesto), tests/engine.test.cjs, tests/reference.test.cjs, tests/external-pokersolver.test.cjs, tests/external-fixtures.cjs, tests/external_phevaluator.py, .github/workflows/verify.yml (CI su main/PR).
 - Flusso: preferire **main**, commit logici minimizzati; non creare branch/PR non necessari. Nessuna modifica distruttiva o pubblicazione dichiarata riuscita senza riscontro.
 
 ## Contratti matematici NON negoziabili
@@ -17,7 +17,7 @@ Poker Lab è un analizzatore probabilistico didattico per **Texas Hold'em**. L'o
 3. Fino a otto avversari, con carte private disgiunte e distribuite senza reinserimento; il board sconosciuto è estratto dallo stesso insieme residuo.
 4. Valutare la **migliore combinazione su cinque carte** fra le cinque-sette disponibili, confrontando categoria e kicker. La scala A-2-3-4-5 è la più bassa. Gestire correttamente split pot, board condiviso e parità fra più giocatori.
 5. Per un esito vittorioso esclusivo la quota del piatto è 1; per una parità al primo posto fra N giocatori (incluso l'utente) è 1/N; se un avversario vince è 0. **Equity = media delle quote del piatto**, NON probabilità pura di vittoria.
-6. Contro avversari uniformemente casuali, **dal turn (quattro o cinque carte comuni) contro un solo avversario** usare enumerazione esatta di tutte le coppie residue e degli eventuali river. Negli altri casi usare **500.000 campioni Monte Carlo fissi**, estratti uniformemente senza reinserimento. Non reintrodurre un selettore di campioni.
+6. Contro avversari uniformemente casuali, **dal flop (3, 4 o 5 carte comuni) contro un solo avversario** usare enumerazione esatta di board e coppie avversarie. **Al river contro due avversari** enumerare le coppie di mani disgiunte non ordinate, contando una sola volta la permutazione dei due avversari simmetrici. Negli altri casi usare **500.000 campioni Monte Carlo fissi**, estratti uniformemente senza reinserimento. Non reintrodurre un selettore di campioni.
 7. L'intervallo di confidenza esposto è **approssimativo al 95%** e riguarda l'errore di campionamento della media delle quote, NON l'incertezza sul range reale degli avversari. Un risultato esatto vale solo rispetto al modello e alle carte note.
 8. Per il solo caso semplificato di call fino allo showdown: pot odds minime = costo_call / (piatto_attuale + costo_call), EV_call = equity × (piatto_attuale + costo_call) − costo_call. Presupposti: piatto inserito prima del proprio call, nessun rake, side pot, puntata futura o fold equity. Non usare queste formule come consiglio universalmente ottimale.
 9. Il modello attuale assume mani avversarie **uniformemente casuali**; non interpreta posizione, azioni, bet sizing o range. Evidenziare sempre questo limite. Le probabilità delle carte residue non predicono carte specifiche.
@@ -33,17 +33,17 @@ Poker Lab è un analizzatore probabilistico didattico per **Texas Hold'em**. L'o
 1. Leggere la versione **attuale** di index.html, AGENTS.md, test e configurazione della repository; non assumere che queste note sostituiscano l'evidenza del codice.
 2. Analizzare invarianti, chiamanti e casi limite prima di modificare logica matematica o UI.
 3. Applicare modifiche minime e coerenti; non cambiare formule o contratti implicitamente.
-4. Eseguire **node --test tests/*.test.cjs** sulla versione candidata. Per modifiche UI, verificare realmente in un browser desktop risoluzioni e overflow.
-5. Per algoritmi probabilistici, usare confronti con risultati combinatori esatti, test deterministici e verifiche di campionamento con tolleranze motivate. Non considerare i test verdi prova completa.
+4. Eseguire **node --test tests/*.test.cjs** sulla versione candidata. In locale, il test di confronto con `pokersolver` viene marcato SKIP se la dipendenza non è installata; in CI il confronto è obbligatorio. Eseguire inoltre i test con `phevaluator` in CI. Per modifiche UI, verificare realmente in un browser desktop risoluzioni e overflow.
+5. Per algoritmi probabilistici, usare confronti con risultati combinatori esatti, test deterministici e verifiche di campionamento con tolleranze motivate. Gli oracoli esterni in CI sono `pokersolver@2.1.4` (MIT) e `phevaluator==0.6.1` (Apache-2.0), solo per test, mai in produzione. Non considerare i test verdi prova completa.
 6. Verificare sintassi, accessibilità di base, assenza di dipendenze esterne e funzionamento su percorso GitHub Pages /pkr/.
 7. Distinguere sempre: test locali, commit su main, job GitHub Pages e URL pubblico effettivamente raggiungibile.
 8. Aggiornare AGENTS.md e README.md quando cambiano contratti, struttura, istruzioni o limiti; evitare documentazione ridondante o obsoleta.
 
 ## Limiti e miglioramenti futuri (NON già implementati)
 - Range avversari configurabili e condizionati alle azioni.
-- Ulteriore enumerazione esatta quando il numero di combinazioni resta computazionalmente gestibile (oltre all'attuale turn/river heads-up).
+- Ulteriore enumerazione esatta quando il numero di combinazioni resta computazionalmente gestibile (oltre all'attuale flop/turn/river heads-up e river contro due avversari).
 - Modello economico per rake, side pot, puntate successive e fold equity.
-- Rafforzamento metodologico degli intervalli statistici e dei test esaustivi.
+- Rafforzamento metodologico degli intervalli statistici, test di distribuzione Monte Carlo e benchmark su dispositivi più lenti; CI esterna non è certificazione formale.
 
 ## Uso responsabile
 È uno strumento di analisi/allenamento, non una garanzia di risultato. L'uso in tempo reale durante partite con denaro reale può violare regolamenti di piattaforme/casinò o leggi locali: non dichiararlo universalmente consentito. Non introdurre tracciamento utenti, credenziali o API key nel codice statico.

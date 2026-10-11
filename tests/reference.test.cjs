@@ -10,7 +10,7 @@ const script=html.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script);
 const context=vm.createContext({console,Math,Int8Array,Array,Set,Error,Object});
 vm.runInContext(script.split('// UI CODE')[0],context);
-const {deck,evaluate,remaining,enumerate}=vm.runInContext('({deck:DECK,evaluate,remaining:getRemaining,enumerate:enumerateHeadsUp})',context);
+const {deck,evaluate,remaining,enumerate,steps,riverTwo}=vm.runInContext('({deck:DECK,evaluate,remaining:getRemaining,enumerate:enumerateHeadsUp,steps:enumerateHeadsUpSteps,riverTwo:enumerateRiverTwoOpponents})',context);
 const card=s=>{const m=/^(10|[2-9TJQKA])([hdcs])$/.exec(s);assert.ok(m,s);const rank=({T:10,J:11,Q:12,K:13,A:14})[m[1]]||+m[1];const suit=({h:0,d:1,c:2,s:3})[m[2]];return deck.find(c=>c.r===rank&&c.s===suit)};
 const hand=(...t)=>t.map(card);
 // Independent oracle: evaluate exactly five cards using multiplicities, then
@@ -98,6 +98,88 @@ test('Termini generali: carta sul board uguale per tutti comporta split esatti',
   assert.equal(e.wins,0);assert.equal(e.losses,0);assert.equal(e.ties,e.total);assert.equal(e.share/e.total,0.5);
 });
 
+function referenceRiverTwoOpponents(hole,board,dead=[]){
+  const pool=remaining([...hole,...board,...dead]);
+  const hero=rankOracle([...hole,...board]);
+  const hands=[];
+  for(let i=0;i<pool.length;i++)for(let j=i+1;j<pool.length;j++)
+    hands.push({i,j,rank:rankOracle([pool[i],pool[j],...board])});
+  let total=0,wins=0,ties=0,losses=0,share=0,shareSquares=0;
+  for(let i=0;i<hands.length;i++)for(let j=i+1;j<hands.length;j++){
+    const a=hands[i],b=hands[j];
+    if(a.i===b.i||a.i===b.j||a.j===b.i||a.j===b.j)continue;
+    const q=a.rank>hero||b.rank>hero?0:1/(1+Number(a.rank===hero)+Number(b.rank===hero));
+    if(q===1)wins++;else if(q===0)losses++;else ties++;
+    share+=q;shareSquares+=q*q;total++;
+  }
+  return {total,wins,ties,losses,share,shareSquares};
+}
+function referenceFlop(hole,board,dead=[]){
+  const pool=remaining([...hole,...board,...dead]);
+  let total=0,wins=0,ties=0,losses=0,share=0,shareSquares=0;
+  const cat=Array(9).fill(0);
+  for(let r=0;r<pool.length;r++)for(let t=r+1;t<pool.length;t++){
+    const fullBoard=[...board,pool[r],pool[t]], hero=rankOracle([...hole,...fullBoard]);
+    cat[Math.floor(hero/15**5)] += (pool.length-2)*(pool.length-3)/2;
+    for(let i=0;i<pool.length;i++){
+      if(i===r||i===t)continue;
+      for(let j=i+1;j<pool.length;j++){
+        if(j===r||j===t)continue;
+        const rank=rankOracle([pool[i],pool[j],...fullBoard]);
+        const q=hero>rank?1:hero===rank?0.5:0;
+        if(q===1)wins++;else if(q===0.5)ties++;else losses++;
+        share+=q;shareSquares+=q*q;total++;
+      }
+    }
+  }
+  return {total,wins,ties,losses,share,shareSquares,categories:cat};
+}
+test('River contro due avversari: enumerazione indipendente con split 2 e 3 giocatori',()=>{
+  const cases=[
+    {hole:hand('As','Kd'),board:hand('2c','3d','4s','5h','9c'),dead:[]},
+    {hole:hand('2d','3c'),board:hand('Ts','Js','Qs','Ks','As'),dead:hand('4h','5d')},
+    {hole:hand('Ah','Kh'),board:hand('Qh','Jh','Th','2c','3d'),dead:hand('4s','5s')}
+  ];
+  for(const {hole,board,dead} of cases){
+    const actual=riverTwo(hole,board,remaining([...hole,...board,...dead]));
+    const expected=referenceRiverTwoOpponents(hole,board,dead);
+    for(const key of ['total','wins','ties','losses','share','shareSquares'])assert.equal(actual[key],expected[key],key);
+    assert.equal(actual.categories.reduce((a,b)=>a+b,0),actual.total);
+    assert.equal(actual.wins+actual.ties+actual.losses,actual.total);
+  }
+});
+test('River a due avversari: 446.985 configurazioni equiprobabili, contro 1.000.000 Monte Carlo non esatte',()=>{
+  const hole=hand('As','Kd'),board=hand('2c','3d','4s','5h','9c');
+  const r=riverTwo(hole,board,remaining([...hole,...board]));
+  const n=45;
+  assert.equal(r.total,(n*(n-1)/2)*((n-2)*(n-3)/2)/2);
+  assert.ok(r.share/r.total>=0&&r.share/r.total<=1);
+});
+test('Flop: enumerazione indipendente con carte escluse e somma combinatoria completa',()=>{
+  const hole=hand('As','Kd'),board=hand('2c','3d','4s');
+  const dead=deck.filter(c=>![...hole,...board].some(k=>k.id===c.id)).slice(0,24);
+  const pool=remaining([...hole,...board,...dead]);
+  const actual=enumerate(hole,board,pool);
+  const expected=referenceFlop(hole,board,dead);
+  for(const key of ['total','wins','ties','losses','share','shareSquares'])assert.equal(actual[key],expected[key],key);
+  assert.equal(actual.categories.join(','),expected.categories.join(','));
+  const all=remaining([...hole,...board]);
+  const complete=enumerate(hole,board,all);
+  assert.equal(complete.total,47*46/2*45*44/2);
+  assert.equal(complete.wins+complete.ties+complete.losses,complete.total);
+  assert.equal(complete.categories.reduce((a,b)=>a+b,0),complete.total);
+});
+test('Flop: iteratore fornisce progressione coerente e non salta nessun esito',()=>{
+  const hole=hand('As','Kd'),board=hand('2c','3d','4s'),dead=remaining([...hand('As','Kd'),...hand('2c','3d','4s')]).slice(0,20);
+  const pool=remaining([...hole,...board,...dead]);
+  let prev=0,last=null,stepsCount=0;
+  for(const partial of steps(hole,board,pool)){
+    assert.equal(partial.total-prev,(pool.length-2)*(pool.length-3)/2);
+    prev=partial.total;last=partial;stepsCount++;
+  }
+  assert.equal(stepsCount,pool.length*(pool.length-1)/2);
+  assert.equal(last.total,prev);
+});
 test('Monte Carlo con generatore deterministico converge all\'equity esatta al river',()=>{
   const h=hand('As','Kd'),b=hand('2c','3h','4s','5d','9c');
   const pool=remaining([...h,...b]);

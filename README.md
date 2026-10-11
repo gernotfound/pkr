@@ -30,7 +30,7 @@ Non sono necessari npm, server o strumenti di compilazione. Serve Node.js per es
 node --test tests/*.test.cjs
 ```
 
-Le istruzioni tecniche, le invarianti matematiche e i limiti del modello sono documentati in [AGENTS.md](AGENTS.md). La suite locale confronta 10.000 mani da sette carte con un valutatore indipendente e controlla le enumerazioni esatte. La CI aggiunge test **test-only** con due motori esterni: `pokersolver@2.1.4` (JavaScript) e `phevaluator==0.6.1` (Python, derivato da PH Evaluator). Nessuna libreria esterna è necessaria per usare il sito. I test locali possono segnalare uno SKIP per `pokersolver` non installato. **Non si tratta di certificazione formale**; verificare gli esiti reali dei workflow GitHub prima di considerarli passati.
+Le istruzioni tecniche, le invarianti matematiche e i limiti del modello sono documentati in [AGENTS.md](AGENTS.md). La suite locale confronta 10.000 mani da sette carte con un valutatore indipendente e controlla le enumerazioni esatte. La CI aggiunge test **test-only** con due motori esterni: `pokersolver@2.1.4` (JavaScript) e `phevaluator==0.6.0` (Python, derivato da PH Evaluator). Nessuna libreria esterna è necessaria per usare il sito. I test locali possono segnalare uno SKIP per `pokersolver` non installato. **Non si tratta di certificazione formale**; verificare gli esiti reali dei workflow GitHub prima di considerarli passati.
 
 ## Limitazioni
 - Dashboard progettata **solo per desktop** (da 1280×720, con larghezza minima tecnica di 1190 px).

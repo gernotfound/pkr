@@ -1,6 +1,6 @@
 """Compare pkr showdown winners to independently packaged PH Evaluator.
 
-This test runs only in CI, with phevaluator pinned to 0.6.1. It is never
+This test runs only in CI, with phevaluator pinned to 0.6.0. It is never
 bundled into the public site or executed during user sessions.
 """
 import json
@@ -20,7 +20,7 @@ def main() -> None:
             raise AssertionError(f"External PH evaluator mismatch in scenario {index}: "
                                  f"board={board}, hands={scenario['hands']}, "
                                  f"pkr={scenario['winners']}, ph={winners}")
-    print(f"PASS: {len(scenarios)} independently evaluated showdowns (PH Evaluator 0.6.1)")
+    print(f"PASS: {len(scenarios)} independently evaluated showdowns (PH Evaluator 0.6.0)")
 
 
 if __name__ == '__main__':

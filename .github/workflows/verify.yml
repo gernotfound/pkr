@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install pinned external PH Evaluator (test-only)
-        run: python -m pip install 'phevaluator==0.6.1'
+        run: python -m pip install 'phevaluator==0.6.0'
       - name: Compare showdown results to independent perfect-hash evaluator
         run: |
           node tests/external-fixtures.cjs > "$RUNNER_TEMP/pkr-showdowns.json"

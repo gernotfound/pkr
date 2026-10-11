@@ -34,7 +34,7 @@ Poker Lab è un analizzatore probabilistico didattico per **Texas Hold'em**. L'o
 2. Analizzare invarianti, chiamanti e casi limite prima di modificare logica matematica o UI.
 3. Applicare modifiche minime e coerenti; non cambiare formule o contratti implicitamente.
 4. Eseguire **node --test tests/*.test.cjs** sulla versione candidata. In locale, il test di confronto con `pokersolver` viene marcato SKIP se la dipendenza non è installata; in CI il confronto è obbligatorio. Eseguire inoltre i test con `phevaluator` in CI. Per modifiche UI, verificare realmente in un browser desktop risoluzioni e overflow.
-5. Per algoritmi probabilistici, usare confronti con risultati combinatori esatti, test deterministici e verifiche di campionamento con tolleranze motivate. Gli oracoli esterni in CI sono `pokersolver@2.1.4` (MIT) e `phevaluator==0.6.1` (Apache-2.0), solo per test, mai in produzione. Non considerare i test verdi prova completa.
+5. Per algoritmi probabilistici, usare confronti con risultati combinatori esatti, test deterministici e verifiche di campionamento con tolleranze motivate. Gli oracoli esterni in CI sono `pokersolver@2.1.4` (MIT) e `phevaluator==0.6.0` (Apache-2.0), solo per test, mai in produzione. Non considerare i test verdi prova completa.
 6. Verificare sintassi, accessibilità di base, assenza di dipendenze esterne e funzionamento su percorso GitHub Pages /pkr/.
 7. Distinguere sempre: test locali, commit su main, job GitHub Pages e URL pubblico effettivamente raggiungibile.
 8. Aggiornare AGENTS.md e README.md quando cambiano contratti, struttura, istruzioni o limiti; evitare documentazione ridondante o obsoleta.
